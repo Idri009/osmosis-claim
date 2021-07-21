@@ -1,0 +1,158 @@
+#!/usr/bin/expect
+
+# Requirement
+# at lease 0.4 osmo
+
+
+# Configuration
+# tcp://178.128.154.17:26657
+# https://rpc-osmosis.itastakers.com:443/
+
+set NODE "https://rpc-osmosis.itastakers.com:443/";
+set CHAIN_ID "osmosis-1";
+
+
+# Arguments
+# 1. key name
+# 2. key password
+# 3. mnemonic
+# 4. proposal id
+
+# Check arguments
+set ARGV_COUNT [llength $argv]
+if {$ARGV_COUNT != 4} {
+    puts "Usage: expect claim.exp \[key name\] \[key password\] \[mnemonic\] \[votable proposal id\]"
+    exit;
+}
+
+
+# Process
+# 1. create key
+# 2. check airdrop balance
+# 3. check osmo balance
+# 4. swap
+# 5. join liquidity to pool
+# 6. exit liquidity to pool
+# 7. staking
+# 8. voting
+# 9. check airdrop balance
+# 10. check osmo balance
+
+
+set KEYNAME [lindex $argv 0];
+set PASSWORD [lindex $argv 1];
+set MNEMONIC [lindex $argv 2];
+set PROPOSAL_ID [lindex $argv 3];
+
+puts "\n1. create key"
+
+spawn osmosisd keys add $KEYNAME --recover --keyring-backend file --output json
+expect {
+    "> Enter your bip39 mnemonic" {
+        send "$MNEMONIC\n"
+        exp_continue
+    }
+
+    "Enter keyring passphrase:" {
+        send "$PASSWORD\n"
+        exp_continue
+    }
+
+    "override the existing name" {
+        send "N\n"
+        puts "\n(Error) $KEYNAME is exist"
+        exit
+    }
+}
+
+set ADDRESS [exec sh -c "echo $PASSWORD | osmosisd keys show $KEYNAME --keyring-backend file --output json | jq -r '.address'"]
+puts "Address : $ADDRESS"
+
+
+
+puts "\n2. check airdrop balance"
+set CLAIM_RECORD [exec sh -c "exec osmosisd q claim claim-record $ADDRESS --node=$NODE"]
+puts "$CLAIM_RECORD"
+
+
+
+puts "\n3. check osmo balance"
+set BALANCE [exec sh -c "exec osmosisd q bank balances $ADDRESS --node=$NODE"]
+puts "$BALANCE"
+
+
+
+puts "\n4. swap"
+spawn osmosisd tx gamm swap-exact-amount-in 200000uosmo 20000 --swap-route-pool-ids 1 --swap-route-denoms ibc/27394FB092D2ECCD56123C74F36E4C1F926001CEADA9CA97EA622B25F41E5EB2 \
+               --from $KEYNAME \
+               --keyring-backend file --node=$NODE --chain-id=$CHAIN_ID --yes --broadcast-mode  block
+expect {
+    "Enter keyring passphrase:" {
+        send "$PASSWORD\n"
+        exp_continue
+    }
+}
+
+
+
+puts "\n5. join liquidity to pool"
+spawn osmosisd tx gamm join-pool --pool-id 1 --max-amounts-in "102498uosmo" --share-amount-out 1000000000000000000 \
+               --from $KEYNAME \
+               --keyring-backend file --node=$NODE --chain-id=$CHAIN_ID --yes --gas 500000 --broadcast-mode  block
+expect {
+    "Enter keyring passphrase:" {
+        send "$PASSWORD\n"
+        exp_continue
+    }
+}
+
+
+
+puts "\n6. exit liquidity to pool"
+spawn osmosisd tx gamm exit-pool --pool-id 1 --min-amounts-out "1uosmo" --share-amount-in 1000000000000000000 \
+               --from $KEYNAME \
+               --keyring-backend file --node=$NODE --chain-id=$CHAIN_ID --yes --gas 500000 --broadcast-mode  block
+expect {
+    "Enter keyring passphrase:" {
+        send "$PASSWORD\n"
+        exp_continue
+    }
+}
+
+
+
+puts "\n7. staking"
+spawn osmosisd tx staking delegate  osmovaloper1n3mhyp9fvcmuu8l0q8qvjy07x0rql8q4d3kvts 10000uosmo \
+               --from $KEYNAME \
+               --keyring-backend file --node=$NODE --chain-id=$CHAIN_ID --yes --gas 500000 --broadcast-mode  block
+expect {
+    "Enter keyring passphrase:" {
+        send "$PASSWORD\n"
+        exp_continue
+    }
+}
+
+
+
+puts "\n8. voting"
+spawn osmosisd tx gov vote $PROPOSAL_ID yes \
+               --from $KEYNAME \
+               --keyring-backend file --node=$NODE --chain-id=$CHAIN_ID --yes --broadcast-mode  block
+expect {
+    "Enter keyring passphrase:" {
+        send "$PASSWORD\n"
+        exp_continue
+    }
+}
+
+
+
+puts "\n9. check airdrop balance"
+set CLAIM_RECORD [exec sh -c "exec osmosisd q claim claim-record $ADDRESS --node=$NODE"]
+puts "$CLAIM_RECORD"
+
+
+
+puts "\n10. check osmo balance"
+set BALANCE [exec sh -c "exec osmosisd q bank balances $ADDRESS --node=$NODE"]
+puts "$BALANCE"
