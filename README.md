@@ -1,10 +1,15 @@
-# osmosis claim script
+# Osmosis claim script by 0base.vc
+
+Delegate $osmo to [0base.vc](https://www.mintscan.io/osmosis/validators/osmovaloper1n3mhyp9fvcmuu8l0q8qvjy07x0rql8q4d3kvts).
+
 
 ----
 
 ## Requirement
 
-apt install expect -y
+* expect
+
+`apt install expect -y`
 
 ## Run
 
