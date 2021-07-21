@@ -65,7 +65,7 @@ expect {
     }
 }
 
-set ADDRESS [exec sh -c "echo $PASSWORD | osmosisd keys show $KEYNAME --keyring-backend file --output json | jq -r '.address'"]
+set ADDRESS [exec sh -c "echo $PASSWORD | osmosisd keys show $KEYNAME --keyring-backend file --output json | jq -r '.address'"];
 puts "Address : $ADDRESS"
 
 
@@ -85,7 +85,7 @@ puts "$BALANCE"
 puts "\n4. swap"
 spawn osmosisd tx gamm swap-exact-amount-in 200000uosmo 20000 --swap-route-pool-ids 1 --swap-route-denoms ibc/27394FB092D2ECCD56123C74F36E4C1F926001CEADA9CA97EA622B25F41E5EB2 \
                --from $KEYNAME \
-               --keyring-backend file --node=$NODE --chain-id=$CHAIN_ID --yes --broadcast-mode  block
+               --keyring-backend file --node=$NODE --chain-id=$CHAIN_ID --yes --broadcast-mode block
 expect {
     "Enter keyring passphrase:" {
         send "$PASSWORD\n"
@@ -95,10 +95,10 @@ expect {
 
 
 
-puts "\n5. join liquidity to pool"
+puts "\n5. join pool"
 spawn osmosisd tx gamm join-pool --pool-id 1 --max-amounts-in "102498uosmo" --share-amount-out 1000000000000000000 \
                --from $KEYNAME \
-               --keyring-backend file --node=$NODE --chain-id=$CHAIN_ID --yes --gas 500000 --broadcast-mode  block
+               --keyring-backend file --node=$NODE --chain-id=$CHAIN_ID --yes --gas 500000 --broadcast-mode block
 expect {
     "Enter keyring passphrase:" {
         send "$PASSWORD\n"
@@ -108,10 +108,10 @@ expect {
 
 
 
-puts "\n6. exit liquidity to pool"
+puts "\n6. exit pool"
 spawn osmosisd tx gamm exit-pool --pool-id 1 --min-amounts-out "1uosmo" --share-amount-in 1000000000000000000 \
                --from $KEYNAME \
-               --keyring-backend file --node=$NODE --chain-id=$CHAIN_ID --yes --gas 500000 --broadcast-mode  block
+               --keyring-backend file --node=$NODE --chain-id=$CHAIN_ID --yes --gas 500000 --broadcast-mode block
 expect {
     "Enter keyring passphrase:" {
         send "$PASSWORD\n"
@@ -124,7 +124,7 @@ expect {
 puts "\n7. staking"
 spawn osmosisd tx staking delegate  osmovaloper1n3mhyp9fvcmuu8l0q8qvjy07x0rql8q4d3kvts 10000uosmo \
                --from $KEYNAME \
-               --keyring-backend file --node=$NODE --chain-id=$CHAIN_ID --yes --gas 500000 --broadcast-mode  block
+               --keyring-backend file --node=$NODE --chain-id=$CHAIN_ID --yes --gas 500000 --broadcast-mode block
 expect {
     "Enter keyring passphrase:" {
         send "$PASSWORD\n"
@@ -137,7 +137,7 @@ expect {
 puts "\n8. voting"
 spawn osmosisd tx gov vote $PROPOSAL_ID yes \
                --from $KEYNAME \
-               --keyring-backend file --node=$NODE --chain-id=$CHAIN_ID --yes --broadcast-mode  block
+               --keyring-backend file --node=$NODE --chain-id=$CHAIN_ID --yes --broadcast-mode block
 expect {
     "Enter keyring passphrase:" {
         send "$PASSWORD\n"

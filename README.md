@@ -7,7 +7,12 @@
 
 ## Requirement
 
+* osmosisd
 * expect
+
+## Install osmosisd
+
+`git clone https://github.com/osmosis-labs/osmosis && cd osmosis && git checkout v1.0.1 && make build && cd build && ls -al`
 
 ## Install expect
 
